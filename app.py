@@ -31,29 +31,16 @@ def input_pdf_text(uploaded_file):
     return text
 
 # Function to parse and aggregate responses
-def aggregate_responses(responses):
-    total_percentage = 0
-    all_keywords = set()
-    summaries = []
-
-    for response in responses:
-        try:
-            result = json.loads(response)
-            total_percentage += int(result["JD Match"].replace("%", ""))
-            all_keywords.update(result["MissingKeywords"])
-            summaries.append(result["Profile Summary"])
-        except Exception as e:
-            continue
-
-    average_percentage = total_percentage // len(responses)
-    summary = " ".join(summaries)
-
-    return {
-        "JD Match": f"{average_percentage}%",
-        "MissingKeywords": list(all_keywords),
-        "Profile Summary": summary
-    }
-
+def aggregate_responses(response):
+    try:
+        result = json.loads(response)
+        return {
+            "JD Match": f"{result['JD Match']}%",
+            "MissingKeywords": result.get("MissingKeywords", []),
+            "Profile Summary": result.get("Profile Summary", "")
+        }
+    except Exception as e:
+        return {"Error": str(e)}
 
 ## prompt template
 
@@ -73,6 +60,8 @@ I want the response in one single string having the structure:
 
 
 ## Streamlit App
+# Initialize session state
+session_state = st.session_state.setdefault("response", {})
 
 st.title("Resume Tracking System")
 st.text("Improve Your Resume")
@@ -86,11 +75,15 @@ if submit:
         resume_text = input_pdf_text(uploaded_file)
         input_prompt = input_prompt_template.format(resume_text=resume_text, job_description=jd)
         
-        # Collect multiple responses for consistency
-        responses = [get_gemini_response(input_prompt) for _ in range(5)]
-        aggregated_response = aggregate_responses(responses)
-        
+        # Check if response is already stored in session state
+        if 'response' not in session_state or session_state.response == "":
+            # Generate response and store it in session state
+            session_state.response = get_gemini_response(input_prompt)
+            session_state.aggregated_response = aggregate_responses(session_state.response)
+            
+        # Display the stored response
         st.subheader("Response")
-        st.write(aggregated_response)
+        st.write(session_state.aggregated_response)
+
     else:
         st.write("Please upload a PDF file")
