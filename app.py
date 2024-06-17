@@ -48,8 +48,13 @@ nltk.download('stopwords')
 
 
 def fetch_yt_video(link):
-    video = pafy.new(link)
-    return video.title
+    try:
+        video = pafy.new(link)
+        return video.title
+    except Exception as e:
+        print(f"An error occurred while fetching video title: {e}")
+        return "Unknown Title"
+
 
 def get_table_download_link(df,filename,text):
     """Generates a link allowing the data in a given panda dataframe to be downloaded
