@@ -57,4 +57,21 @@ def show_pdf(file_path):
     # pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
     pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
     st.markdown(pdf_display, unsafe_allow_html=True)
-    
+
+#CONNECT TO DATABASE
+
+connection = pymysql.connect(host='localhost',user='root',password='(Add your password)',db='cv')
+cursor = connection.cursor()
+
+def insert_data(name,email,res_score,timestamp,no_of_pages,reco_field,cand_level,skills,recommended_skills,courses):
+    DB_table_name = 'user_data'
+    insert_sql = "insert into " + DB_table_name + """
+    values (0,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+    rec_values = (name, email, str(res_score), timestamp,str(no_of_pages), reco_field, cand_level, skills,recommended_skills,courses)
+    cursor.execute(insert_sql, rec_values)
+    connection.commit()
+
+st.set_page_config(
+   page_title="AI Resume Analyzer",
+   page_icon='./Logo/logo2.png',
+)
