@@ -224,3 +224,86 @@ def run():
                         st.markdown('''<h4 style='text-align: left; color: #1ed760;'>Adding this skills to resume will boost🚀 the chances of getting a Job💼</h4>''',unsafe_allow_html=True)
                         rec_course = course_recommender(uiux_course)
                         break
+                     ## Insert into table
+                ts = time.time()
+                cur_date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
+                cur_time = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
+                timestamp = str(cur_date+'_'+cur_time)
+
+                ### Resume writing recommendation
+                st.subheader("**Resume Tips & Ideas💡**")
+                resume_score = 0
+                if 'Objective' in resume_text:
+                    resume_score = resume_score+20
+                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added Objective</h4>''',unsafe_allow_html=True)
+                else:
+                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add your career objective, it will give your career intension to the Recruiters.</h4>''',unsafe_allow_html=True)
+
+                if 'Declaration'  in resume_text:
+                    resume_score = resume_score + 20
+                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added Delcaration/h4>''',unsafe_allow_html=True)
+                else:
+                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Declaration. It will give the assurance that everything written on your resume is true and fully acknowledged by you</h4>''',unsafe_allow_html=True)
+
+                if 'Hobbies' or 'Interests'in resume_text:
+                    resume_score = resume_score + 20
+                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added your Hobbies</h4>''',unsafe_allow_html=True)
+                else:
+                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Hobbies. It will show your persnality to the Recruiters and give the assurance that you are fit for this role or not.</h4>''',unsafe_allow_html=True)
+
+                if 'Achievements' in resume_text:
+                    resume_score = resume_score + 20
+                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added your Achievements </h4>''',unsafe_allow_html=True)
+                else:
+                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Achievements. It will show that you are capable for the required position.</h4>''',unsafe_allow_html=True)
+
+                if 'Projects' in resume_text:
+                    resume_score = resume_score + 20
+                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added your Projects</h4>''',unsafe_allow_html=True)
+                else:
+                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Projects. It will show that you have done work related the required position or not.</h4>''',unsafe_allow_html=True)
+
+                st.subheader("**Resume Score📝**")
+                st.markdown(
+                    """
+                    <style>
+                        .stProgress > div > div > div > div {
+                            background-color: #d73b5c;
+                        }
+                    </style>""",
+                    unsafe_allow_html=True,
+                )
+                my_bar = st.progress(0)
+                score = 0
+                for percent_complete in range(resume_score):
+                    score +=1
+                    time.sleep(0.1)
+                    my_bar.progress(percent_complete + 1)
+                st.success('** Your Resume Writing Score: ' + str(score)+'**')
+                st.warning("** Note: This score is calculated based on the content that you have in your Resume. **")
+                st.balloons()
+
+                insert_data(resume_data['name'], resume_data['email'], str(resume_score), timestamp,
+                              str(resume_data['no_of_pages']), reco_field, cand_level, str(resume_data['skills']),
+                              str(recommended_skills), str(rec_course))
+
+
+                ## Resume writing video
+                st.header("**Bonus Video for Resume Writing Tips💡**")
+                resume_vid = random.choice(resume_videos)
+                res_vid_title = fetch_yt_video(resume_vid)
+                st.subheader("✅ **"+res_vid_title+"**")
+                st.video(resume_vid)
+
+
+
+                ## Interview Preparation Video
+                st.header("**Bonus Video for Interview Tips💡**")
+                interview_vid = random.choice(interview_videos)
+                int_vid_title = fetch_yt_video(interview_vid)
+                st.subheader("✅ **" + int_vid_title + "**")
+                st.video(interview_vid)
+
+                connection.commit()
+            else:
+                st.error('Something went wrong..')
