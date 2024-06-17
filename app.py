@@ -18,3 +18,17 @@ import pafy #for uploading youtube videos
 import plotly.express as px #to create visualisations at the admin session
 import nltk
 nltk.download('stopwords')
+
+def fetch_yt_video(link):
+    video = pafy.new(link)
+    return video.title
+
+def get_table_download_link(df,filename,text):
+    """Generates a link allowing the data in a given panda dataframe to be downloaded
+    in: dataframe
+    out: href string
+    """
+csv = df.to_csv(index=False)
+b64 = base64.b64encode(csv.encode()).decode() # some strings <-> bytes conversions necessary here
+# href = f'<a href="data:file/csv;base64,{b64}">Download Report</a>'
+href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">{text}</a>'
