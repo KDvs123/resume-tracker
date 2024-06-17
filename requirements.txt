@@ -1,4 +1,9 @@
+pdfminer3
+pyresparser
 streamlit
-google-generativeai
-python-dotenv
-PyPDF2
+pandas
+pafy
+plotly
+pymysql
+streamlit-tags
+Pillow
