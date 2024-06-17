@@ -1,3 +1,26 @@
+#SET UP:
+
+# 1. INSTALL BELOW LIBRARIES
+
+        #pip install -r requirements.txt
+
+        # pip install nltk
+
+        # pip install spacy==2.3.5
+
+        # pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.1/en_core_web_sm-2.3.1.tar.gz
+
+        # pip install pyresparser
+
+# 2. CREAT A FOLDER AND NAME IT (e.g. resume)
+        #2.1 create two more folders inside this folder (Logo and Uploaded_Resumes)
+        #2.2 create two python files (App.py and Courses.py)
+
+# 3. START YOUR SQL DATABASE
+
+
+# 4. CONTINUE WITH THE FOLLOWING CODE...
+
 import streamlit as st
 import pandas as pd
 import base64,random
@@ -13,11 +36,16 @@ import io,random
 from streamlit_tags import st_tags
 from PIL import Image
 import pymysql
+import os
+os.environ["PAFY_BACKEND"] = "internal"
+
+import pafy
+
 from Courses import ds_course,web_course,android_course,ios_course,uiux_course,resume_videos,interview_videos
-import pafy #for uploading youtube videos
 import plotly.express as px #to create visualisations at the admin session
 import nltk
 nltk.download('stopwords')
+
 
 def fetch_yt_video(link):
     video = pafy.new(link)
@@ -25,13 +53,14 @@ def fetch_yt_video(link):
 
 def get_table_download_link(df,filename,text):
     """Generates a link allowing the data in a given panda dataframe to be downloaded
-    in: dataframe
+    in:  dataframe
     out: href string
     """
-csv = df.to_csv(index=False)
-b64 = base64.b64encode(csv.encode()).decode() # some strings <-> bytes conversions necessary here
-# href = f'<a href="data:file/csv;base64,{b64}">Download Report</a>'
-href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">{text}</a>'
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+    # href = f'<a href="data:file/csv;base64,{b64}">Download Report</a>'
+    href = f'<a href="data:file/csv;base64,{b64}" download="{filename}">{text}</a>'
+    return href
 
 def pdf_reader(file):
     resource_manager = PDFResourceManager()
@@ -58,9 +87,27 @@ def show_pdf(file_path):
     pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
     st.markdown(pdf_display, unsafe_allow_html=True)
 
+def course_recommender(course_list):
+    st.subheader("**Courses & Certificates Recommendations 🎓**")
+    c = 0
+    rec_course = []
+    no_of_reco = st.slider('Choose Number of Course Recommendations:', 1, 10, 5)
+    random.shuffle(course_list)
+    for c_name, c_link in course_list:
+        c += 1
+        st.markdown(f"({c}) [{c_name}]({c_link})")
+        rec_course.append(c_name)
+        if c == no_of_reco:
+            break
+    return rec_course
+
+
+
+
+
 #CONNECT TO DATABASE
 
-connection = pymysql.connect(host='localhost',user='root',password='(Add your password)',db='cv')
+connection = pymysql.connect(host='localhost',user='root',password='',db='cv')
 cursor = connection.cursor()
 
 def insert_data(name,email,res_score,timestamp,no_of_pages,reco_field,cand_level,skills,recommended_skills,courses):
@@ -75,7 +122,6 @@ st.set_page_config(
    page_title="AI Resume Analyzer",
    page_icon='./Logo/logo2.png',
 )
-
 def run():
     img = Image.open('./Logo/logo2.png')
     # img = img.resize((250,250))
@@ -224,7 +270,9 @@ def run():
                         st.markdown('''<h4 style='text-align: left; color: #1ed760;'>Adding this skills to resume will boost🚀 the chances of getting a Job💼</h4>''',unsafe_allow_html=True)
                         rec_course = course_recommender(uiux_course)
                         break
-                     ## Insert into table
+
+                
+                ## Insert into table
                 ts = time.time()
                 cur_date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
                 cur_time = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
@@ -315,7 +363,7 @@ def run():
         ad_user = st.text_input("Username")
         ad_password = st.text_input("Password", type='password')
         if st.button('Login'):
-            if ad_user == 'briit' and ad_password == 'briit123':
+            if ad_user == 'vihanga' and ad_password == 'KDvs123':
                 st.success("Welcome Dr Briit !")
                 # Display Data
                 cursor.execute('''SELECT*FROM user_data''')
