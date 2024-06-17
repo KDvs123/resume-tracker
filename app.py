@@ -37,6 +37,7 @@ from streamlit_tags import st_tags
 from PIL import Image
 import pymysql
 import os
+import re
 os.environ["PAFY_BACKEND"] = "internal"
 
 import pafy
@@ -127,12 +128,47 @@ st.set_page_config(
    page_title="AI Resume Analyzer",
    page_icon='./Logo/logo2.png',
 )
+
+def evaluate_writing_style(text):
+    # Simple checks for grammar and style
+    # This is a basic example; consider using more sophisticated NLP tools for comprehensive evaluation
+    errors = 0
+    if len(text.split()) < 50:  # Check for minimum word count
+        errors += 1
+    if re.search(r'\b(I|we) (am|is|are)\b', text):  # Avoid passive voice
+        errors += 1
+    return errors
+
+essential_sections = ['Objective', 'Education', 'Work Experience', 'Skills', 'Projects', 'Achievements', 'References']
+
+def calculate_resume_score(resume_text):
+    resume_score = 0
+    writing_errors = 0
+    
+    # Check for essential sections
+    for section in essential_sections:
+        if section.lower() in resume_text.lower():
+            resume_score += 20
+        else:
+            st.markdown(f'''<h5 style='text-align: left; color: #000000;'>[-] Please add {section}. It is crucial for a comprehensive resume.</h4>''', unsafe_allow_html=True)
+    
+    # Evaluate writing style
+    writing_errors = evaluate_writing_style(resume_text)
+    if writing_errors == 0:
+        resume_score += 30  # Bonus for good writing style
+        st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Excellent writing style!</h4>''', unsafe_allow_html=True)
+    else:
+        st.markdown(f'''<h5 style='text-align: left; color: #ff0000;'>[-] Found {writing_errors} writing style issues. Please revise.</h4>''', unsafe_allow_html=True)
+    
+    # Additional checks for content relevance can be implemented here
+    
+    return resume_score
+
 def run():
     img = Image.open('./Logo/logo2.png')
     # img = img.resize((250,250))
     st.image(img)
-    st.title("AI Resume Analyser")
-    st.sidebar.markdown("# Choose User")
+    st.title("AI Resume 3eq User")
     activities = ["User", "Admin"]
     choice = st.sidebar.selectbox("Choose among the given options:", activities)
     link = '[©Developed by Dr,Briit](https://www.linkedin.com/in/mrbriit/)'
@@ -283,59 +319,20 @@ def run():
                 cur_time = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
                 timestamp = str(cur_date+'_'+cur_time)
 
-                ### Resume writing recommendation
+                # Assuming 'resume_text' is defined somewhere above in your Streamlit app
+                resume_score = calculate_resume_score(resume_text)
+
                 st.subheader("**Resume Tips & Ideas💡**")
-                resume_score = 0
-                if 'Objective' in resume_text:
-                    resume_score = resume_score+20
-                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added Objective</h4>''',unsafe_allow_html=True)
-                else:
-                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add your career objective, it will give your career intension to the Recruiters.</h4>''',unsafe_allow_html=True)
-
-                if 'Declaration'  in resume_text:
-                    resume_score = resume_score + 20
-                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added Delcaration/h4>''',unsafe_allow_html=True)
-                else:
-                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Declaration. It will give the assurance that everything written on your resume is true and fully acknowledged by you</h4>''',unsafe_allow_html=True)
-
-                if 'Hobbies' or 'Interests'in resume_text:
-                    resume_score = resume_score + 20
-                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added your Hobbies</h4>''',unsafe_allow_html=True)
-                else:
-                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Hobbies. It will show your persnality to the Recruiters and give the assurance that you are fit for this role or not.</h4>''',unsafe_allow_html=True)
-
-                if 'Achievements' in resume_text:
-                    resume_score = resume_score + 20
-                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added your Achievements </h4>''',unsafe_allow_html=True)
-                else:
-                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Achievements. It will show that you are capable for the required position.</h4>''',unsafe_allow_html=True)
-
-                if 'Projects' in resume_text:
-                    resume_score = resume_score + 20
-                    st.markdown('''<h5 style='text-align: left; color: #1ed760;'>[+] Awesome! You have added your Projects</h4>''',unsafe_allow_html=True)
-                else:
-                    st.markdown('''<h5 style='text-align: left; color: #000000;'>[-] Please add Projects. It will show that you have done work related the required position or not.</h4>''',unsafe_allow_html=True)
 
                 st.subheader("**Resume Score📝**")
-                st.markdown(
-                    """
-                    <style>
-                        .stProgress > div > div > div > div {
-                            background-color: #d73b5c;
-                        }
-                    </style>""",
-                    unsafe_allow_html=True,
-                )
                 my_bar = st.progress(0)
-                score = 0
                 for percent_complete in range(resume_score):
-                    score +=1
                     time.sleep(0.1)
                     my_bar.progress(percent_complete + 1)
-                st.success('** Your Resume Writing Score: ' + str(score)+'**')
-                st.warning("** Note: This score is calculated based on the content that you have in your Resume. **")
+                st.success(f'** Your Resume Writing Score: {resume_score}**')
+                st.warning("** Note: This score is calculated based on the content and writing style of your Resume. **")
                 st.balloons()
-
+                    
                 insert_data(resume_data['name'], resume_data['email'], str(resume_score), timestamp,
                               str(resume_data['no_of_pages']), reco_field, cand_level, str(resume_data['skills']),
                               str(recommended_skills), str(rec_course))
